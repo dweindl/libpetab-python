@@ -52,10 +52,17 @@ def sympify_petab(expr: str | int | float) -> sp.Expr | sp.Basic:
     visitor = MathVisitorSympy()
     expr = visitor.visit(tree)
     expr = bool2num(expr)
-    # check for `False`, we'll accept both `True` and `None`
-    if expr.is_extended_real is False:
-        raise ValueError(f"Expression {expr} is not real-valued.")
-
+    try:
+        # check for `False`, we'll accept both `True` and `None`
+        if expr.is_extended_real is False:
+            raise ValueError(f"Expression {expr} is not real-valued.")
+    except AttributeError as e:
+        # work-around for `sp.sec(0, evaluate=False).is_extended_real` error
+        if str(e) not in (
+            "'One' object has no attribute '_eval_is_extended_real'",
+            "'Float' object has no attribute '_eval_is_extended_real'",
+        ):
+            raise
     return expr
 
 
