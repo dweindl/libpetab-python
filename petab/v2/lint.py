@@ -8,6 +8,7 @@ from collections import Counter, OrderedDict
 from collections.abc import Set
 from dataclasses import dataclass, field
 from enum import IntEnum
+from itertools import chain
 from pathlib import Path
 
 import pandas as pd
@@ -484,11 +485,14 @@ class CheckExperimentConditionsExist(ValidationTask):
             c.id for c in problem.condition_table.conditions
         }
         for experiment in problem.experiment_table.experiments:
-            missing_conditions = {
-                period.condition_id
-                for period in experiment.periods
-                if period.condition_id is not None
-            } - available_conditions
+            missing_conditions = (
+                set(
+                    chain.from_iterable(
+                        period.condition_ids for period in experiment.periods
+                    )
+                )
+                - available_conditions
+            )
             if missing_conditions:
                 messages.append(
                     f"Experiment {experiment.id} requires conditions that are "
@@ -497,6 +501,9 @@ class CheckExperimentConditionsExist(ValidationTask):
 
         if messages:
             return ValidationError("\n".join(messages))
+
+
+# TODO: Check that changes of simultaneously applied conditions don't intersect
 
 
 class CheckAllParametersPresentInParameterTable(ValidationTask):
@@ -646,12 +653,13 @@ class CheckUnusedConditions(ValidationTask):
     table."""
 
     def run(self, problem: Problem) -> ValidationIssue | None:
-        used_conditions = {
-            p.condition_id
-            for e in problem.experiment_table.experiments
-            for p in e.periods
-            if p.condition_id is not None
-        }
+        used_conditions = set(
+            chain.from_iterable(
+                p.condition_ids
+                for e in problem.experiment_table.experiments
+                for p in e.periods
+            )
+        )
         available_conditions = {
             c.id for c in problem.condition_table.conditions
         }
