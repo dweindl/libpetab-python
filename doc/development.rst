@@ -1,6 +1,13 @@
 Development
 ===========
 
+Before contributing, please read our
+`contribution guide <https://github.com/PEtab-dev/libpetab-python/blob/main/CONTRIBUTING.md>`__,
+including the
+`contribution policy <https://github.com/PEtab-dev/libpetab-python/blob/main/CONTRIBUTING.md#contribution-policy>`__;
+in particular, any use of AI tools has to be disclosed in the pull request
+description.
+
 Versioning
 ----------
 
